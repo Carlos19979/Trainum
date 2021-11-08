@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  Trainum_db:
+    image: postgres:11.1-alpine
+    container_name: Trainum_db
+    environment:
+      POSTGRES_USER: ${Trainum_DB_USER}
+      POSTGRES_PASSWORD: ${Trainum_DB_PASSWORD}
+      POSTGRES_DB: ${Trainum_DB_DATABASE}
+    ports:
+      - '${Trainum_DB_PORT}:${Trainum_DB_PORT}'
+    volumes:
+      - ./docker/postgres/:/docker-entrypoint-initdb.d/
+    networks:
+      - api-network
+
+  Trainum_api:
+    image: 'node:14-alpine'
+    container_name: Trainum_api
+    restart: unless-stopped
+    tty: true
+    working_dir: '/api'
+    env_file: .env
+    ports:
+      - ${NODE_PORT}:${NODE_PORT}
+    volumes:
+      - ./:/api
+    links:
+      - Trainum_db
+    depends_on:
+      - Trainum_db
+    networks:
+      - api-network
+
+
+networks:
+  api-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
